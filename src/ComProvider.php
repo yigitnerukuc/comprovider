@@ -57,7 +57,9 @@ class ComProvider implements PluginInterface, EventSubscriberInterface
                 continue;
             }
             if (strpos($file->getPathname(), 'ServiceProvider') !== false) {
-                $files[] = $file->getPathname();
+                if(strpos($file->getPathname(),'Lumen') === false){
+                    $files[] = $file->getPathname();
+                }
             }
         }
         return $files;
@@ -66,28 +68,34 @@ class ComProvider implements PluginInterface, EventSubscriberInterface
     public function getProvider($file)
     {
         $php_code = file_get_contents(current($file));
-        $classes = array();
-        $namespace = "";
-        $tokens = token_get_all($php_code);
-        $count = count($tokens);
+        return $this->getPhpClasses($php_code);
+    }
 
-        for ($i = 0; $i < $count; $i++) {
-            if ($tokens[$i][0] === T_NAMESPACE) {
-                for ($j = $i + 1; $j < $count; ++$j) {
-                    if ($tokens[$j][0] === T_STRING)
-                        $namespace .= "\\" . $tokens[$j][1];
-                    elseif ($tokens[$j] === '{' or $tokens[$j] === ';')
-                        break;
+
+    public function getPhpClasses($phpcode) {
+
+        $namespace = 0;
+        $tokens = token_get_all($phpcode);
+        $count = count($tokens);
+        $dlm = false;
+        for ($i = 2; $i < $count; $i++) {
+            if ((isset($tokens[$i - 2][1]) && ($tokens[$i - 2][1] == "phpnamespace" || $tokens[$i - 2][1] == "namespace")) ||
+                ($dlm && $tokens[$i - 1][0] == T_NS_SEPARATOR && $tokens[$i][0] == T_STRING)) {
+                if (!$dlm) $namespace = 0;
+                if (isset($tokens[$i][1])) {
+                    $namespace = $namespace ? $namespace . "\\" . $tokens[$i][1] : $tokens[$i][1];
+                    $dlm = true;
                 }
             }
-            if ($tokens[$i][0] === T_CLASS) {
-                for ($j = $i + 1; $j < $count; ++$j)
-                    if ($tokens[$j] === '{') {
-                        $classes[] = $namespace . "\\" . $tokens[$i + 2][1];
-                    }
+            elseif ($dlm && ($tokens[$i][0] != T_NS_SEPARATOR) && ($tokens[$i][0] != T_STRING)) {
+                $dlm = false;
+            }
+            if (($tokens[$i - 2][0] == T_CLASS || (isset($tokens[$i - 2][1]) && $tokens[$i - 2][1] == "phpclass"))
+                && $tokens[$i - 1][0] == T_WHITESPACE && $tokens[$i][0] == T_STRING) {
+                $class_name = $tokens[$i][1];
+                return $namespace.'\\'.$class_name.'::class,';
             }
         }
-        return substr(current($classes), 1) . '::class,';
     }
 
     public function saveLine($file, $provider)
