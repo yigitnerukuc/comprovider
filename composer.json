@@ -1,5 +1,5 @@
 {
-  "name": "yigitnerukuc/comprovider",
+  "name": "yigitcukuren/comprovider",
   "type": "composer-plugin",
   "description": "Comprovider is a composer plugin which provides to initialize automatically installed Laravel packages via Composer",
   "keywords": ["comprovider", "yigitnerukuc"],
