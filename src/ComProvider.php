@@ -15,16 +15,13 @@ class ComProvider implements PluginInterface, EventSubscriberInterface
 {
     protected $composer;
     protected $io;
-    public $packages = [];
 
-    public function activate(Composer $composer, IOInterface $io)
-    {
+    public function activate(Composer $composer, IOInterface $io){
         $this->composer = $composer;
         $this->io = $io;
     }
 
-    public static function getSubscribedEvents()
-    {
+    public static function getSubscribedEvents(){
         return array(
             'post-package-install' => array(
                 array('packageInstalled', 0)
@@ -32,13 +29,11 @@ class ComProvider implements PluginInterface, EventSubscriberInterface
         );
     }
 
-    public function packageInstalled(PackageEvent $event)
-    {
+    public function packageInstalled(PackageEvent $event){
         $vendorDir = $this->composer->getConfig()->get('vendor-dir');
         $configApp = $vendorDir . '/../config/app.php';
         $installedPackage = $event->getOperation()->getPackage();
         $name = $installedPackage->getName();
-
         $dir = $vendorDir . '/' . $name;
         $files = $this->directoryContents($dir);
         if (!empty($files)) {
@@ -47,9 +42,7 @@ class ComProvider implements PluginInterface, EventSubscriberInterface
         }
     }
 
-    public function directoryContents($dir)
-    {
-
+    public function directoryContents($dir){
         $rii = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir));
         $files = array();
         foreach ($rii as $file) {
@@ -65,17 +58,14 @@ class ComProvider implements PluginInterface, EventSubscriberInterface
         return $files;
     }
 
-    public function getProvider($file)
-    {
+    public function getProvider($file){
         $php_code = file_get_contents(current($file));
         return $this->getPhpClasses($php_code);
     }
 
-
-    public function getPhpClasses($phpcode) {
-
+    public function getPhpClasses($phpCode) {
         $namespace = 0;
-        $tokens = token_get_all($phpcode);
+        $tokens = token_get_all($phpCode);
         $count = count($tokens);
         $dlm = false;
         for ($i = 2; $i < $count; $i++) {
@@ -98,8 +88,7 @@ class ComProvider implements PluginInterface, EventSubscriberInterface
         }
     }
 
-    public function saveLine($file, $provider)
-    {
+    public function saveLine($file, $provider){
         $search = "ComProvider";
         $lines = file($file);
         $line_number = false;
@@ -115,10 +104,9 @@ class ComProvider implements PluginInterface, EventSubscriberInterface
         fclose($fp);
     }
 
-    public function insertValueAtPos(array &$array, $pos, $value)
-    {
-        $maxIndex = count($array) - 1;
+    public function insertValueAtPos(array &$array, $pos, $value){
 
+        $maxIndex = count($array) - 1;
         if ($pos === 0) {
             array_unshift($array, $value);
         } elseif (($pos > 0) && ($pos <= $maxIndex)) {
