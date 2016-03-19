@@ -125,7 +125,7 @@ class ComProvider implements PluginInterface, EventSubscriberInterface
                 $class_name = $tokens[$i][1];
             }
         }
-        return $namespace.'\\'.$class_name.'::class,';
+        return $namespace.'\\'.$class_name.'::class, //  '.$this->getPackageName();
 
     }
 
