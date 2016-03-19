@@ -1,9 +1,9 @@
 {
   "name": "yigitnerukuc/comprovider",
   "type": "composer-plugin",
-  "description": "Test",
-  "keywords": ["test", "est"],
-  "homepage": "http://github.com/vlucas/phpdotenv",
+  "description": "Comprovider is a composer plugin which provides to initialize automatically installed Laravel packages via Composer",
+  "keywords": ["comprovider", "yigitnerukuc"],
+  "homepage": "http://github.com/yigitnerukuc/comprovider",
   "license" : "BSD",
   "authors" : [
     {
@@ -13,7 +13,6 @@
     }
   ],
   "require": {
-    "php": ">=5.3.9",
     "composer-plugin-api": "^1.0"
 
   },
