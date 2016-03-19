@@ -137,13 +137,18 @@ class ComProvider implements PluginInterface, EventSubscriberInterface
         while (list($key, $line) = each($lines) and !$line_number) {
             $line_number = (strpos($line, $search) !== FALSE) ? $key + 1 : $line_number;
         }
-        $provider = "\t\t" . $this->packageProvider . "\n";
-        $this->insertValueAtPos($lines, $line_number + 1, $provider);
-        $fp = fopen($this->configAppDirectory, 'w');
-        foreach ($lines as $line) {
-            fwrite($fp, $line);
+        if($line_number != false){
+            $provider = "\t\t" . $this->packageProvider . "\n";
+            $this->insertValueAtPos($lines, $line_number + 1, $provider);
+            $fp = fopen($this->configAppDirectory, 'w');
+            foreach ($lines as $line) {
+                fwrite($fp, $line);
+            }
+            fclose($fp);
+        }else {
+            echo 'ComProvider block not found in your config/app.php'.PHP_EOL;
         }
-        fclose($fp);
+
     }
 
     public function insertValueAtPos(array &$array, $pos, $value){
