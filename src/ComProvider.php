@@ -9,16 +9,32 @@ use Composer\Plugin\PluginInterface;
 use Composer\Plugin\PluginEvents;
 use Composer\Plugin\PreFileDownloadEvent;
 use Composer\Installer\PackageEvent;
-
+use RecursiveIteratorIterator as RII;
+use RecursiveDirectoryIterator as RDI;
 
 class ComProvider implements PluginInterface, EventSubscriberInterface
 {
     protected $composer;
     protected $io;
+    public $vendorDirectory;
+    public $configAppDirectory;
+    public $installedPackage;
+    public $packageDirectory;
+    public $packageProvider;
+    public $requiredPackages;
+    public $files;
+    const MOTTO = 'ComProvider';
 
     public function activate(Composer $composer, IOInterface $io){
         $this->composer = $composer;
         $this->io = $io;
+        $this->initDirectories();
+    }
+
+    public function initDirectories(){
+
+        $this->vendorDirectory = $this->composer->getConfig()->get('vendor-dir');
+        $this->configAppDirectory = $this->vendorDirectory . '/../config/app.php';
     }
 
     public static function getSubscribedEvents(){
@@ -29,21 +45,42 @@ class ComProvider implements PluginInterface, EventSubscriberInterface
         );
     }
 
-    public function packageInstalled(PackageEvent $event){
-        $vendorDir = $this->composer->getConfig()->get('vendor-dir');
-        $configApp = $vendorDir . '/../config/app.php';
-        $installedPackage = $event->getOperation()->getPackage();
-        $name = $installedPackage->getName();
-        $dir = $vendorDir . '/' . $name;
-        $files = $this->directoryContents($dir);
-        if (!empty($files)) {
-            $provider = $this->getProvider($files);
-            $this->saveLine($configApp, $provider, $dir);
-        }
+    public function getPackageName(){
+        return $this->installedPackage->getName();
     }
 
-    public function directoryContents($dir){
-        $rii = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir));
+
+    public function packageInstalled(PackageEvent $event){
+
+        $packages = $this->composer->getPackage()->getRequires();
+        foreach($packages as $key => $package){
+            $this->requiredPackages[] = $key;
+        }
+        $this->installedPackage = $event->getOperation()->getPackage();
+        if(in_array($this->getPackageName(),$this->requiredPackages)){
+            $this->packageDirectory = $this->vendorDirectory . '/' .$this->getPackageName();
+            if($this->setFiles($this->directoryContents())){
+                $this->packageProvider = $this->getProvider($this->files);
+                $this->addLine();
+            }
+        }
+
+    }
+
+    public function setFiles($contents){
+
+        if(!empty($contents)){
+            $this->files = $contents;
+            return true;
+        }else {
+            return false;
+        }
+
+    }
+
+    public function directoryContents(){
+
+        $rii = new RII(new RDI($this->packageDirectory));
         $files = array();
         foreach ($rii as $file) {
             if ($file->isDir()) {
@@ -59,11 +96,14 @@ class ComProvider implements PluginInterface, EventSubscriberInterface
     }
 
     public function getProvider($file){
-        $php_code = file_get_contents(current($file));
-        return $this->getPhpClasses($php_code);
+
+        $phpCode = file_get_contents(current($file));
+        return $this->parseClass($phpCode);
+
     }
 
-    public function getPhpClasses($phpCode) {
+    public function parseClass($phpCode) {
+        $class_name = '';
         $namespace = 0;
         $tokens = token_get_all($phpCode);
         $count = count($tokens);
@@ -83,21 +123,23 @@ class ComProvider implements PluginInterface, EventSubscriberInterface
             if (($tokens[$i - 2][0] == T_CLASS || (isset($tokens[$i - 2][1]) && $tokens[$i - 2][1] == "phpclass"))
                 && $tokens[$i - 1][0] == T_WHITESPACE && $tokens[$i][0] == T_STRING) {
                 $class_name = $tokens[$i][1];
-                return $namespace.'\\'.$class_name.'::class,';
             }
         }
+        return $namespace.'\\'.$class_name.'::class,';
+
     }
 
-    public function saveLine($file, $provider){
-        $search = "ComProvider";
-        $lines = file($file);
+    public function addLine(){
+
+        $search = self::MOTTO;
+        $lines = file($this->configAppDirectory);
         $line_number = false;
         while (list($key, $line) = each($lines) and !$line_number) {
             $line_number = (strpos($line, $search) !== FALSE) ? $key + 1 : $line_number;
         }
-        $provider = "\t\t" . $provider . "\n";
+        $provider = "\t\t" . $this->packageProvider . "\n";
         $this->insertValueAtPos($lines, $line_number + 1, $provider);
-        $fp = fopen($file, 'w');
+        $fp = fopen($this->configAppDirectory, 'w');
         foreach ($lines as $line) {
             fwrite($fp, $line);
         }
