@@ -1,0 +1,31 @@
+{
+  "name": "yigitnerukuc/comprovider",
+  "type": "composer-plugin",
+  "description": "Test",
+  "keywords": ["test", "est"],
+  "homepage": "http://github.com/vlucas/phpdotenv",
+  "license" : "BSD",
+  "authors" : [
+    {
+      "name": "Yigit Cukuren",
+      "email": "yigit@yigit.io",
+      "homepage": "http://www.yigit.io"
+    }
+  ],
+  "require": {
+    "php": ">=5.3.9",
+    "composer-plugin-api": "^1.0"
+
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^4.8|^5.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "ComProvider\\": "src/"
+    }
+  },
+  "extra": {
+    "class": "ComProvider\\ComProvider"
+  }
+}
