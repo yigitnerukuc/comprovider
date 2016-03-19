@@ -28,7 +28,7 @@ App\Providers\AppServiceProvider::class,
 ComProvider adds Service Provider of packages automatically.
 
 
-### After You Installed a Package
+### After You Installed a Laravel Package
 
 Latest version will be your app/config.php like that!
 
