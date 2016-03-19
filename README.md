@@ -1,6 +1,6 @@
 # ComProvider
 
-ComProvider is a composer plugin which provides to initialize automatically installed Laravel packages via Composer
+ComProvider is a composer plugin which provides to initialize your installed Laravel packages via Composer automatically.
 
 
 ### Installation
