@@ -11,7 +11,7 @@ composer require yigitcukuren/comprovider
 
 ### Usage
 
-Just add these block on your app/config.php
+Just add these block in your app/config.php
 
 ```php
 /*
@@ -26,3 +26,24 @@ App\Providers\AppServiceProvider::class,
 ```		 
 
 ComProvider adds Service Provider of packages automatically.
+
+
+### After You Installed a Package
+
+Latest version will be your app/config.php like that!
+
+```php
+/*
+ * Application Service Providers...
+ */
+App\Providers\AppServiceProvider::class,
+..
+
+/*
+  * ComProvider
+*/
+VendorName\Package\PackageServiceProvider::class, // vendorname/package
+
+```
+
+That's it!
