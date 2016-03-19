@@ -99,7 +99,7 @@ class ComProvider implements PluginInterface, EventSubscriberInterface
             $line_number = (strpos($line, $search) !== FALSE) ? $key + 1 : $line_number;
         }
         $provider = "\t\t" . $provider . "\n";
-        $this->insertValueAtPos($lines, $line_number + 2, $provider);
+        $this->insertValueAtPos($lines, $line_number + 1, $provider);
         $fp = fopen($file, 'w');
         foreach ($lines as $line) {
             fwrite($fp, $line);
